@@ -12,38 +12,61 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get single room by ID
-router.get("/:id", async (req, res) => {
-  try {
-    const room = await Room.findById(req.params.id).populate("students", "name email");
-    if (!room) {
-      return res.status(404).json({ message: "Room not found" });
-    }
-    res.status(200).json({ data: room });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Create a room
+// Create a room (with duplicate check and validation)
 router.post("/", async (req, res) => {
   try {
-    const room = new Room(req.body);
-    const newRoom = await room.save();
-    res.status(201).json({ data: newRoom });
+    const {
+      roomNumber,
+      type,
+      acType,
+      capacity,
+      occupied,
+      rent,
+      photo,
+      facilities
+    } = req.body;
+
+    console.log("Incoming room data:", req.body); // Debugging
+
+    // Validation
+    if (!roomNumber || !type || !acType || capacity === undefined || rent === undefined) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Duplicate roomNumber check
+    const existing = await Room.findOne({ roomNumber });
+    if (existing) {
+      return res.status(400).json({
+        code: 11000,
+        message: "Room with this number already exists"
+      });
+    }
+
+    const newRoom = new Room({
+      roomNumber,
+      type: type.toLowerCase(),
+      acType: acType.toLowerCase(),
+      capacity: Number(capacity),
+      occupied: Number(occupied) || 0,
+      rent: Number(rent),
+      photo: photo || "",
+      facilities: facilities || []
+    });
+
+    const saved = await newRoom.save();
+    res.status(201).json({ message: "Room created", data: saved });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error("POST /rooms error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
-// Update room by ID
+// Update room
 router.put("/:id", async (req, res) => {
   try {
-    const updatedRoom = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedRoom) {
-      return res.status(404).json({ message: "Room not found" });
-    }
-    res.status(200).json({ data: updatedRoom });
+    const updated = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updated) return res.status(404).json({ message: "Room not found" });
+    res.status(200).json({ data: updated });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -52,11 +75,9 @@ router.put("/:id", async (req, res) => {
 // Delete room
 router.delete("/:id", async (req, res) => {
   try {
-    const deletedRoom = await Room.findByIdAndDelete(req.params.id);
-    if (!deletedRoom) {
-      return res.status(404).json({ message: "Room not found" });
-    }
-    res.status(200).json({ message: "Room deleted successfully" });
+    const deleted = await Room.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Room not found" });
+    res.status(200).json({ message: "Room deleted" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

@@ -2,61 +2,56 @@ const express = require("express");
 const router = express.Router();
 const Expenses = require("../models/Expenses");
 
-// Get all expensess
+// Get all bills
 router.get("/", async (req, res) => {
   try {
-    const expensess = await Expenses.find().populate("students", "name email");
-    res.status(200).json({ data: expensess });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Get single expenses by ID
-router.get("/:id", async (req, res) => {
-  try {
-    const expenses = await Expenses.findById(req.params.id).populate("students", "name email");
-    if (!expenses) {
-      return res.status(404).json({ message: "Expenses not found" });
-    }
+    const expenses = await Expenses.find().sort({ date: -1 });
     res.status(200).json({ data: expenses });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Create a expenses
+// Get bill by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const bill = await Expenses.findById(req.params.id);
+    if (!bill) return res.status(404).json({ message: "Bill not found" });
+    res.status(200).json({ data: bill });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Create new bill
 router.post("/", async (req, res) => {
   try {
-    const expenses = new Expenses(req.body);
-    const newExpenses = await expenses.save();
-    res.status(201).json({ data: newExpenses });
+    const newBill = new Expenses(req.body);
+    const saved = await newBill.save();
+    res.status(201).json({ data: saved });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error("POST error:", err);
+    res.status(500).json({ message: "Failed to add bill" });
   }
 });
 
-// Update expenses by ID
+// Update bill
 router.put("/:id", async (req, res) => {
   try {
-    const updatedExpenses = await Expenses.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedExpenses) {
-      return res.status(404).json({ message: "Expenses not found" });
-    }
-    res.status(200).json({ data: updatedExpenses });
+    const updated = await Expenses.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updated) return res.status(404).json({ message: "Bill not found" });
+    res.status(200).json({ data: updated });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Delete expenses
+// Delete bill
 router.delete("/:id", async (req, res) => {
   try {
-    const deletedExpenses = await Expenses.findByIdAndDelete(req.params.id);
-    if (!deletedExpenses) {
-      return res.status(404).json({ message: "Expenses not found" });
-    }
-    res.status(200).json({ message: "Expenses deleted successfully" });
+    const deleted = await Expenses.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Bill not found" });
+    res.status(200).json({ message: "Bill deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

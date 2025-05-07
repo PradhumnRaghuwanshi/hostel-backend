@@ -10,6 +10,11 @@ const menuRoutes = require('./routes/menuRoutes')
 const expensesRoutes = require('./routes/expensesRoutes')
 const complaintRoutes = require('./routes/complaintRoutes')
 const AdminCreation = require('./models/Admin')
+const rentRoutes = require("./routes/rentRoutes");
+const noticeRoutes = require("./routes/noticesRoutes");
+
+
+
 
 const app= express()
 const port = 5001
@@ -22,6 +27,8 @@ app.use('/rooms',roomRoutes)
 app.use('/menu',menuRoutes)
 app.use('/complaint',complaintRoutes)
 app.use('/expenses',expensesRoutes)
+app.use("/rents", rentRoutes);
+app.use("/notices", noticeRoutes);
 app.use('foodmenu', require('./routes/menuRoutes'))
 app.listen(port,()=>{
     console.log(`Server is running on port ${port}`)
