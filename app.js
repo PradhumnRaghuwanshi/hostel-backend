@@ -1,6 +1,5 @@
 const express = require('express')
 const cors =  require('cors')
-const bodyParser = require('body-parser');
 const connectDB = require('./configDB/db')
 connectDB()
 const adminRoutes = require('./routes/adminRoutes')
@@ -9,17 +8,12 @@ const roomRoutes = require('./routes/roomRoutes')
 const menuRoutes = require('./routes/menuRoutes')
 const expensesRoutes = require('./routes/expensesRoutes')
 const complaintRoutes = require('./routes/complaintRoutes')
-const AdminCreation = require('./models/Admin')
 const rentRoutes = require("./routes/rentRoutes");
 const noticeRoutes = require("./routes/noticesRoutes");
-
-
-
 
 const app= express()
 const port = 5001
 app.use(cors())
-// app.use(bodyParser.json());
 app.use(express.json())
 app.use('/admin',adminRoutes)
 app.use('/users',userRoutes)
