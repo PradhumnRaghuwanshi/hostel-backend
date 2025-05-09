@@ -1,6 +1,34 @@
 const express = require("express");
 const router = express.Router();
 const Room = require("../models/Room");
+const Rent = require("../models/Rent");
+
+
+// GET /rooms-with-rents
+router.get('/rooms-with-rents', async (req, res) => {
+  try {
+    const rooms = await Room.find();
+
+    // For each room, find the latest rent record
+    const enrichedRooms = await Promise.all(
+      rooms.map(async (room) => {
+        const latestRent = await Rent.findOne({ room: room._id })
+          .sort({ createdAt: -1 }) // most recent rent
+          .lean(); // optional: returns plain JS object
+
+        return {
+          ...room.toObject(), // convert Mongoose doc to plain object
+          latestRent,
+        };
+      })
+    );
+
+    res.status(200).json({ success: true, data: enrichedRooms });
+  } catch (error) {
+    console.error("Error fetching rooms with rents:", error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
 
 // Get all rooms
 router.get("/", async (req, res) => {
