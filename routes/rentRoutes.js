@@ -1,29 +1,57 @@
 const express = require("express");
+const moment = require('moment');
 const router = express.Router();
 const Rent = require("../models/Rent");
+const Room = require("../models/Room");
+
 
 // CREATE or Update Rent for a room
 router.post("/", async (req, res) => {
   try {
-    const { room, rentPayments, totalRentDue, totalRentPaid, rentStatus, electricity } = req.body;
+    const { roomId, rentPaid, totalRentDue, totalRentPaid, rentStatus, electricity, unitConsumed, electricityAmountPaid } = req.body;
 
     // Check if rent record for the room already exists
-    const existing = await Rent.findOne({ room });
+    // const existing = await Rent.findOne({ room });
 
-    if (existing) {
-      // Update existing rent
-      const updated = await Rent.findOneAndUpdate(
-        { room },
-        { $set: { rentPayments, totalRentDue, totalRentPaid, rentStatus, electricity } },
-        { new: true }
-      );
-      return res.status(200).json({ message: "Rent updated", data: updated });
-    }
+    // if (existing) {
+    //   // Update existing rent
+    //   const updated = await Rent.findOneAndUpdate(
+    //     { room },
+    //     { $set: { rentPaid, totalRentDue, totalRentPaid, rentStatus, electricity } },
+    //     { new: true }
+    //   );
+    //   return res.status(200).json({ message: "Rent updated", data: updated });
+    // }
 
-    // Create new rent record
-    const newRent = new Rent({ room, rentPayments, totalRentDue, totalRentPaid, rentStatus, electricity });
-    const saved = await newRent.save();
-    res.status(201).json({ message: "Rent created", data: saved });
+    // // Create new rent record
+    // const newRent = new Rent({ room, rentPaid, totalRentDue, totalRentPaid, rentStatus, electricity });
+    // const saved = await newRent.save();
+
+    const currentMonth = moment().format('MMMM');
+    const currentYear = moment().year();
+
+    const alloted_room = await Room.findById(roomId)
+
+    // Update room rent status
+    alloted_room.currentRentStatus = {
+      month: currentMonth,
+      year: currentYear,
+      totalRent: alloted_room.rent,
+      rentPaid: rentPaid,
+      rentDue: alloted_room.currentRentStatus.rentDue - rentPaid,
+      paidOn:  new Date(),
+      electricity: {
+        unitsConsumed: unitConsumed,
+        amountDue: alloted_room.currentRentStatus.electricity.amountDue - electricityAmountPaid,
+        amountPaid: electricityAmountPaid,
+        status: alloted_room.currentRentStatus.electricity.amountDue - electricityAmountPaid == 0 ? 'paid' : 'unpaid',
+      },
+      status: alloted_room.currentRentStatus.rentDue == 0 ? 'paid' : "unpaid",
+    };
+    await alloted_room.save()
+
+
+    res.status(201).json({ message: "Rent created", data: alloted_room });
 
   } catch (error) {
     console.error(error);

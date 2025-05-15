@@ -10,23 +10,55 @@ const roomSchema = new mongoose.Schema({
   bills: Array,
   facilities: Array,
   rent: { type: Number, required: true },
-
+  
+  currentRentStatus: {
+    status: {
+      type: String,
+      enum: ['paid', 'unpaid', 'partial'],
+      default: 'unpaid',
+    },
+    month: String,
+    year: Number,
+    totalRent: Number,
+    rentPaid: Number,
+    rentDue: Number,
+    paidOn: Date,
+    totalDue: {
+      type : Number,
+      default : function () {
+        return this.rentDue;
+      },
+    },
+    electricity: {
+      ratePerUnit: {
+        type: Number,
+        default: 10,
+      },
+      unitsConsumed: {
+        type: Number,
+        default: 0,
+      },
+      amountDue: {
+        type: Number,
+        default: 0,
+      },
+      amountPaid: Number,
+      status: {
+        type: String,
+        enum: ['paid', 'unpaid', 'partial'],
+        default: 'unpaid',
+      }
+    },
+    remarks: String,
+  },
+  
   // ✅ Added image/photo key for storing image URL
   photo: { type: String, default: "" },
+  alloted: {
+    type: Boolean,
+    default: false
+  }
 
-  rentDetails: [{
-    amount: Number,
-    dueDate: Date,
-    status: { type: String },
-    paidDate: Date,
-  }],
-  electricityBill: [{
-    unit: Number,
-    amount: Number,
-    dueDate: Date,
-    status: { type: String },
-    paidDate: Date,
-  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("Room", roomSchema);

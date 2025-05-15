@@ -66,6 +66,8 @@
       }
     
       room.occupied = room.occupied + 1
+      room.currentRentStatus.rentDue = room.rent
+      room.currentRentStatus.totalRent = room.rent
       await room.save()
 
 
