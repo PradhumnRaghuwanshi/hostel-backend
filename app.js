@@ -10,7 +10,6 @@ const expensesRoutes = require('./routes/expensesRoutes')
 const complaintRoutes = require('./routes/complaintRoutes')
 const rentRoutes = require("./routes/rentRoutes");
 const noticeRoutes = require("./routes/noticesRoutes");
-
 const app= express()
 const port = 5001
 app.use(cors())
